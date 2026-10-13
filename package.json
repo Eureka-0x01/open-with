@@ -1,0 +1,6 @@
+{
+  "name": "open-with",
+  "private": true,
+  "description": "PI-Desktop 插件：Open With 按钮全点位演示。",
+  "type": "commonjs"
+}
