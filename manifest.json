@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "id": "io.github.eureka-0x01.open-with",
   "name": "Open With",
-  "version": "0.6.0",
-  "description": "输入框左侧一颗按钮：主区点击用系统文件管理器（资源管理器）打开当前工作目录；▾ 打开应用管理弹层，可添加、编辑、删除自定义打开方式——粘贴 exe 完整路径（校验 .exe 结尾与文件存在，自动清洗隐形字符），保存时提取该 exe 的图标显示在列表里。资源管理器为内置默认，任何机器都有且不可编辑、不可删除。",
+  "version": "0.7.0",
+  "description": "输入框左侧一颗按钮：主区点击用当前选中的应用打开当前工作目录（在 ▾ 列表里点选即全局切换——点选仅切换不打开，打开只属于主按钮；选中持久保存）；▾ 打开应用管理弹层，可添加、编辑、删除自定义打开方式——粘贴 exe 完整路径（校验 .exe 结尾与文件存在，自动清洗隐形字符），保存时提取该 exe 的图标显示在列表与按钮上。资源管理器为内置默认，任何机器都有且不可编辑、不可删除。",
   "author": "Eureka-0x01",
   "homepage": "https://github.com/Eureka-0x01/open-with",
-  "changelog": "Release 0.6.0：首个发布版本。输入框左侧分裂按钮——主区用系统文件管理器打开当前工作目录（内置默认，任何机器可用、不可编辑删除）；▾ 打开应用管理弹层：添加/编辑/删除自定义打开方式，粘贴 exe 完整路径即可（保存时校验 .exe 结尾与文件存在，并自动清洗复制粘贴混入的隐形字符与包裹引号）；保存时用系统 PowerShell 提取该 exe 的图标并在列表中显示；参数默认传当前项目目录，应用列表跟随按钮下拉、表单居中显示。",
+  "changelog": "Release 0.7.0：主按钮改为按全局选中的应用打开——列表里点选任意应用即全局切换（点选仅切换不打开，打开只属于主按钮；选中持久保存，主按钮实时显示该应用名称与图标），删除选中应用时自动回落资源管理器。Release 0.6.0：首个发布版本。分裂按钮主区打开目录；▾ 应用管理：粘贴 exe 完整路径（校验 .exe 与文件存在、清洗隐形字符）、保存时提取 exe 图标显示在列表中；参数默认传当前项目目录。",
   "license": "MIT",
   "main": "main.js",
   "renderer": "renderer/index.mjs",
   "rendererActions": ["plugin.call"],
-  "rendererCallMethods": ["open", "list", "add", "update", "remove"],
+  "rendererCallMethods": ["open", "list", "select", "add", "update", "remove"],
   "permissions": ["renderer.extension"],
   "engines": {
     "piDesktop": ">=0.9.0"
@@ -20,13 +20,13 @@
   "i18n": {
     "en": {
       "name": "Open With",
-      "description": "One button in the composer bar: the main part opens the current workspace folder with the system file manager; the chevron opens an app-picker menu where custom launchers can be added, edited and removed — paste the full .exe path (validated for the .exe extension and file existence, with invisible-character cleanup); the launcher's exe icon is extracted on save and shown in the list. The file manager is the built-in default — present on every machine, locked and not editable.",
+      "description": "One button in the composer bar: the main part opens the current workspace folder with the currently selected app (click an app in the chevron list to switch globally; the choice persists); the chevron opens an app-picker menu where custom launchers can be added, edited and removed — paste the full .exe path (validated for the .exe extension and file existence, with invisible-character cleanup); the launcher's exe icon is extracted on save and shown in the list and on the button. The file manager is the built-in default — present on every machine, locked and not editable.",
       "safetyNotes": "Clicking the button launches the system file manager (explorer / open / xdg-open) on the current workspace directory, detached, and returns immediately without waiting for it to exit. Custom launchers run only the exe paths the user pasted and saved; before saving, each path is cleaned of invisible characters, validated to end with .exe, and checked to exist. To show launcher icons, saving a launcher runs the system PowerShell once to read that exe's icon resource and store it as a small PNG with the entry — nothing else on disk is read. No network, no clipboard."
     },
     "zh-CN": {
       "name": "Open With",
-      "description": "输入框左侧一颗按钮：主区点击用系统文件管理器（资源管理器）打开当前工作目录；▾ 打开应用管理弹层，可添加、编辑、删除自定义打开方式——粘贴 exe 完整路径（校验 .exe 结尾与文件存在，自动清洗隐形字符），保存时提取该 exe 的图标显示在列表里。资源管理器为内置默认，任何机器都有且不可编辑、不可删除。",
-      "safetyNotes": "点击按钮时以 detached 方式拉起系统文件管理器（explorer / open / xdg-open）打开当前工作目录，拉起后立即返回、不等待其退出。自定义打开方式只执行用户自己粘贴并保存的 exe 路径；保存前会清洗隐形字符、校验以 .exe 结尾并确认文件存在。为在列表里显示图标，保存时会用系统 PowerShell 读取该 exe 的图标资源并存为小尺寸 PNG 随条目保存——除此之外不读任何磁盘文件。不联网、不碰剪贴板。"
+      "description": "输入框左侧一颗按钮：主区点击用当前选中的应用打开当前工作目录（在 ▾ 列表里点选即全局切换，持久保存）；▾ 打开应用管理弹层，可添加、编辑、删除自定义打开方式——粘贴 exe 完整路径（校验 .exe 结尾与文件存在，自动清洗隐形字符），保存时提取该 exe 的图标显示在列表与按钮上。资源管理器为内置默认，任何机器都有且不可编辑、不可删除。",
+      "safetyNotes": "点击按钮时以 detached 方式拉起当前选中的应用（或系统文件管理器）打开当前工作目录，拉起后立即返回、不等待其退出。选中的应用持久保存在插件设置里，删除该应用时自动回落资源管理器。自定义打开方式只执行用户自己粘贴并保存的 exe 路径；保存前会清洗隐形字符、校验以 .exe 结尾并确认文件存在。为显示图标，保存时会用系统 PowerShell 读取该 exe 的图标资源并存为小尺寸 PNG 随条目保存——除此之外不读任何磁盘文件。不联网、不碰剪贴板。"
     }
   }
 }

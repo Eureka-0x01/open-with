@@ -72,6 +72,30 @@ async function listApps() {
   return [...BUILTIN_APPS, ...(await readCustomApps())];
 }
 
+/**
+ * 全局选中的打开方式（settings.selectedApp，跨会话持久）。
+ * 主按钮始终用它打开；列表里点应用行 = 切换选中（并立即用它打开一次）。
+ * 缺省 "explorer"（内置默认）；指向已删除的应用时回落 explorer。
+ */
+async function readSelectedApp() {
+  try {
+    const settings = (await pi.plugin.getSettings()) ?? {};
+    const id = typeof settings.selectedApp === "string" ? settings.selectedApp.trim() : "";
+    if (!id) {
+      return "explorer";
+    }
+    const apps = await listApps();
+    return apps.some(function (app) { return app && app.id === id; }) ? id : "explorer";
+  } catch (_error) {
+    return "explorer";
+  }
+}
+
+async function writeSelectedApp(id) {
+  const settings = (await pi.plugin.getSettings()) ?? {};
+  await pi.plugin.setSettings({ ...settings, selectedApp: id });
+}
+
 /** label → id（小写、[a-z0-9-]）。 */
 function slugify(label) {
   const slug = String(label)
@@ -436,7 +460,11 @@ async function removeApp(payload) {
   }
 
   await writeCustomApps(next);
-  return { ok: true, apps: await listApps(), message: "已删除" };
+  // 删的是当前选中 → 全局选中回落 explorer
+  if ((await readSelectedApp()) === id) {
+    await writeSelectedApp("explorer");
+  }
+  return { ok: true, apps: await listApps(), selected: await readSelectedApp(), message: "已删除" };
 }
 
 /**
@@ -449,14 +477,32 @@ async function onRendererCall(method, args) {
   const payload = request ? request.args : args;
 
   if (name === "open") {
-    const appId = typeof payload?.id === "string" ? payload.id : "explorer";
+    // 显式传 id 用之（点应用行/切换后立即打开）；主按钮不传 id → 全局选中
+    const appId = typeof payload?.id === "string" && payload.id.trim()
+      ? payload.id.trim()
+      : await readSelectedApp();
     const result = await openWorkspaceWith(appId);
     await toast(result.message);
     return result;
   }
 
+  if (name === "select") {
+    // 列表点行：切换全局选中（持久），返回新选中供按钮刷新
+    const id = asString(payload?.id).trim();
+    if (!id) {
+      return { ok: false, message: "缺少应用 id。" };
+    }
+    const apps = await listApps();
+    if (!apps.some(function (app) { return app && app.id === id; })) {
+      return { ok: false, message: `没有找到打开方式 "${id}"。` };
+    }
+    await writeSelectedApp(id);
+    const app = apps.find(function (candidate) { return candidate.id === id; });
+    return { ok: true, selected: id, label: app.label ?? id };
+  }
+
   if (name === "list") {
-    return { ok: true, apps: await listApps() };
+    return { ok: true, apps: await listApps(), selected: await readSelectedApp() };
   }
   if (name === "add") {
     const result = await addApp(payload);

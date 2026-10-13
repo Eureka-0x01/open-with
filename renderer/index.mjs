@@ -69,6 +69,16 @@ const STYLE = `
   }
   .ow-split__label {
     white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ow-split__img {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    object-fit: contain;
+    border-radius: var(--radius-3xs, 4px);
   }
 
   /* —— 弹层菜单 —— */
@@ -109,6 +119,16 @@ const STYLE = `
   }
   .ow-row:hover {
     background: var(--ds-bg-hover, rgba(128, 128, 128, 0.1));
+  }
+  .ow-row--selected {
+    background: var(--ds-bg-active, rgba(128, 128, 128, 0.16));
+  }
+  .ow-row--selected .ow-row__name {
+    color: var(--ds-text-primary, inherit);
+  }
+  .ow-row--selected .ow-row__desc {
+    color: var(--ds-text-secondary, #5d5d5d);
+    font-weight: 550;
   }
   .ow-row__icon {
     flex: none;
@@ -333,11 +353,12 @@ async function callMain(method, args) {
 
 /** —— 应用管理弹层 —— */
 
-function AppRow({ app, onOpen, onEdit, onRemove }) {
+function AppRow({ app, selected, onOpen, onEdit, onRemove }) {
   const locked = Boolean(app.locked);
+  const isSelected = Boolean(selected);
   return h(
     "div",
-    { className: "ow-row", role: "button", tabIndex: 0, onClick: () => onOpen(app.id), onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(app.id); } } },
+    { className: "ow-row" + (isSelected ? " ow-row--selected" : ""), role: "button", tabIndex: 0, "aria-current": isSelected ? "true" : void 0, title: "点击选中（不打开）", onClick: () => onOpen(app.id), onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(app.id); } } },
     app.icon
       ? h("img", { className: "ow-row__img", src: app.icon, alt: "", width: 16, height: 16 })
       : h("span", { className: "ow-row__icon" }, h(Icon, { name: locked ? "folder" : "terminal" })),
@@ -345,7 +366,7 @@ function AppRow({ app, onOpen, onEdit, onRemove }) {
     h(
       "span",
       { className: "ow-row__desc", title: locked ? "内置默认，所有机器可用" : String(app.command ?? "") },
-      locked ? "内置默认 · 不可编辑" : String(app.command ?? ""),
+      isSelected ? "✓ 当前选中（点主按钮打开）" : locked ? "内置默认 · 不可编辑" : String(app.command ?? ""),
     ),
     locked
       ? null
@@ -413,6 +434,8 @@ function MenuLayer({ anchorRect, close }) {
   const [apps, setApps] = React.useState(null);
   const [form, setForm] = React.useState(null); // null | {mode:"add"} | {mode:"edit", app}
   const [error, setError] = React.useState("");
+  // 全局选中的打开方式（settings.selectedApp；主按钮按它打开）
+  const [selected, setSelected] = React.useState("explorer");
   const menuRef = React.useRef(null);
 
   React.useEffect(function () {
@@ -420,6 +443,7 @@ function MenuLayer({ anchorRect, close }) {
     callMain("list", {}).then(function (result) {
       if (alive) {
         setApps(result?.apps ?? []);
+        setSelected(result?.selected ?? "explorer");
       }
     });
     const onKey = function (e) {
@@ -446,11 +470,23 @@ function MenuLayer({ anchorRect, close }) {
   }, [close]);
 
   const openApp = async function (id) {
-    await callMain("open", { id });
-    close();
+    // 点应用行 = 只切换全局选中（持久），不打开；打开动作只属于主按钮。
+    // select 落地后立即通知主按钮刷新（两个独立 React 根，靠共享钩子联动）。
+    const sel = await callMain("select", { id });
+    if (sel && sel.ok) {
+      setSelected(sel.selected);
+      if (typeof refreshSelectedButton === "function") {
+        refreshSelectedButton();
+      }
+    } else {
+      setError((sel && sel.message) || "切换失败。");
+    }
   };
-  const saved = function (nextApps) {
+  const saved = function (nextApps, nextSelected) {
     setApps(nextApps ?? []);
+    if (typeof nextSelected === "string") {
+      setSelected(nextSelected);
+    }
     setForm(null);
     setError("");
   };
@@ -458,6 +494,13 @@ function MenuLayer({ anchorRect, close }) {
     const result = await callMain("remove", { id });
     if (result && result.ok) {
       setApps(result.apps ?? []);
+      if (typeof result.selected === "string") {
+        setSelected(result.selected);
+      }
+      // 删除后选中可能回落 explorer：主按钮立即同步
+      if (typeof refreshSelectedButton === "function") {
+        refreshSelectedButton();
+      }
       setError("");
     } else {
       setError((result && result.message) || "删除失败。");
@@ -497,6 +540,7 @@ function MenuLayer({ anchorRect, close }) {
                   return h(AppRow, {
                     key: app.id,
                     app,
+                    selected: app.id === selected,
                     onOpen: openApp,
                     onEdit: (a) => { setForm({ mode: "edit", app: a }); setError(""); },
                     onRemove: removeApp,
@@ -506,6 +550,11 @@ function MenuLayer({ anchorRect, close }) {
             h(
               "div",
               { className: "ow-menu__footer" },
+              h(
+                "p",
+                { className: "ow-cands__title", style: { padding: "0 8px 2px", margin: 0 } },
+                `当前选中：${(() => { const hit = (apps ?? []).find((a) => a.id === selected); return hit ? hit.label ?? hit.id : "File Explorer"; })()}——列表点选仅切换，打开请点主按钮`,
+              ),
               h(
                 "button",
                 { type: "button", className: "ow-add", onClick: () => { setForm({ mode: "add" }); setError(""); } },
@@ -537,13 +586,55 @@ function toggleMenu(anchorRect) {
       /* 已卸载 */
     }
     layer.close();
+    // 弹层关闭后主按钮刷新（选中可能刚被切换）
+    if (typeof refreshSelectedButton === "function") {
+      refreshSelectedButton();
+    }
   };
   openMenuHandle = { close };
   root.render(h(MenuLayer, { anchorRect, close }));
 }
 
-/** 分裂按钮：主区 = 用默认（资源管理器）打开；▾ = 应用管理弹层。 */
+/** 主按钮的选中应用刷新器：挂载时、以及每次菜单层关闭（选中可能被切换）后调用。 */
+let refreshSelectedButton = null;
+
+function fetchCurrentApp() {
+  return callMain("list", {}).then(function (result) {
+    if (!result || !result.ok) {
+      return null;
+    }
+    const hit = (result.apps ?? []).find(function (app) {
+      return app && app.id === result.selected;
+    });
+    return hit ? { label: hit.label ?? hit.id, icon: hit.icon, locked: Boolean(hit.locked) } : null;
+  });
+}
+
+/** 分裂按钮：主区 = 用全局选中的应用打开（不传 id，主进程读 settings.selectedApp）；▾ = 弹层。 */
 function OpenWithControl() {
+  const [current, setCurrent] = React.useState(null); // {label, icon, locked}
+
+  React.useEffect(function () {
+    let alive = true;
+    fetchCurrentApp().then(function (hit) {
+      if (alive) {
+        setCurrent(hit);
+      }
+    });
+    refreshSelectedButton = function () {
+      fetchCurrentApp().then(function (hit) {
+        if (alive) {
+          setCurrent(hit);
+        }
+      });
+    };
+    return function () {
+      alive = false;
+      refreshSelectedButton = null;
+    };
+  }, []);
+
+  const label = current ? current.label : "Open With";
   return h(
     "div",
     { className: "ow-split" },
@@ -552,11 +643,13 @@ function OpenWithControl() {
       {
         type: "button",
         className: "ow-split__main",
-        title: "用资源管理器打开当前工作目录",
-        onClick: () => callMain("open", { id: "explorer" }),
+        title: `用 ${label} 打开当前工作目录`,
+        onClick: () => callMain("open", {}),
       },
-      h(Icon, { name: "folder", size: 15 }),
-      h("span", { className: "ow-split__label" }, "Open With"),
+      current && current.icon
+        ? h("img", { className: "ow-split__img", src: current.icon, alt: "", width: 15, height: 15 })
+        : h(Icon, { name: current && current.locked ? "folder" : "terminal", size: 15 }),
+      h("span", { className: "ow-split__label" }, label),
     ),
     h(
       "button",
