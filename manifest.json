@@ -6,7 +6,10 @@
   "description": "输入框左侧一颗按钮：主区点击用当前选中的应用打开当前工作目录（在 ▾ 列表里点选即全局切换——点选仅切换不打开，打开只属于主按钮；选中持久保存）；▾ 打开应用管理弹层，可添加、编辑、删除自定义打开方式——粘贴 exe 完整路径（校验 .exe 结尾与文件存在，自动清洗隐形字符），保存时提取该 exe 的图标显示在列表与按钮上。资源管理器为内置默认，任何机器都有且不可编辑、不可删除。",
   "author": "Eureka-0x01",
   "homepage": "https://github.com/Eureka-0x01/open-with",
-  "changelog": "Release 0.7.0：主按钮改为按全局选中的应用打开——列表里点选任意应用即全局切换（点选仅切换不打开，打开只属于主按钮；选中持久保存，主按钮实时显示该应用名称与图标），删除选中应用时自动回落资源管理器。Release 0.6.0：首个发布版本。分裂按钮主区打开目录；▾ 应用管理：粘贴 exe 完整路径（校验 .exe 与文件存在、清洗隐形字符）、保存时提取 exe 图标显示在列表中；参数默认传当前项目目录。",
+  "repository": "https://github.com/Eureka-0x01/open-with",
+  "categories": ["developer-tools", "productivity"],
+  "changelog": "0.1.0：首次正式发布。通过输入框底栏按钮使用选中的应用打开当前项目目录；支持添加、编辑和删除自定义打开方式，保存选中状态，删除选中应用后回落内置文件管理器；支持 Windows exe 路径清理、校验和程序图标提取。",
+  "safetyNotes": "在宿主主窗口中显示按钮和弹层；读取当前项目目录，将其作为参数传给系统文件管理器或用户保存的程序。应用路径、参数、选中状态和图标存于插件设置。Windows 上检查盘符绝对路径是否存在，并调用系统 PowerShell 提取程序图标。不联网、不读取剪贴板，不主动修改或删除项目文件。外部程序按其自身权限运行。",
   "license": "MIT",
   "main": "main.js",
   "renderer": "renderer/index.mjs",
@@ -21,12 +24,12 @@
     "en": {
       "name": "Open With",
       "description": "One button in the composer bar: the main part opens the current workspace folder with the currently selected app (click an app in the chevron list to switch globally; the choice persists); the chevron opens an app-picker menu where custom launchers can be added, edited and removed — paste the full .exe path (validated for the .exe extension and file existence, with invisible-character cleanup); the launcher's exe icon is extracted on save and shown in the list and on the button. The file manager is the built-in default — present on every machine, locked and not editable.",
-      "safetyNotes": "Clicking the button launches the system file manager (explorer / open / xdg-open) on the current workspace directory, detached, and returns immediately without waiting for it to exit. Custom launchers run only the exe paths the user pasted and saved; before saving, each path is cleaned of invisible characters, validated to end with .exe, and checked to exist. To show launcher icons, saving a launcher runs the system PowerShell once to read that exe's icon resource and store it as a small PNG with the entry — nothing else on disk is read. No network, no clipboard."
+      "safetyNotes": "Renders a button and layers inside the host window. Reads the current workspace path and passes it to the system file manager or a user-configured executable. Launcher paths, arguments, selection and icons are stored in plugin settings. On Windows, drive-letter absolute paths are checked for existence and system PowerShell is used to extract executable icons. No network or clipboard access; the plugin does not intentionally modify or delete project files. Launched applications run with their own permissions."
     },
     "zh-CN": {
       "name": "Open With",
       "description": "输入框左侧一颗按钮：主区点击用当前选中的应用打开当前工作目录（在 ▾ 列表里点选即全局切换，持久保存）；▾ 打开应用管理弹层，可添加、编辑、删除自定义打开方式——粘贴 exe 完整路径（校验 .exe 结尾与文件存在，自动清洗隐形字符），保存时提取该 exe 的图标显示在列表与按钮上。资源管理器为内置默认，任何机器都有且不可编辑、不可删除。",
-      "safetyNotes": "点击按钮时以 detached 方式拉起当前选中的应用（或系统文件管理器）打开当前工作目录，拉起后立即返回、不等待其退出。选中的应用持久保存在插件设置里，删除该应用时自动回落资源管理器。自定义打开方式只执行用户自己粘贴并保存的 exe 路径；保存前会清洗隐形字符、校验以 .exe 结尾并确认文件存在。为显示图标，保存时会用系统 PowerShell 读取该 exe 的图标资源并存为小尺寸 PNG 随条目保存——除此之外不读任何磁盘文件。不联网、不碰剪贴板。"
+      "safetyNotes": "在宿主主窗口中显示按钮和弹层；读取当前项目目录，将其作为参数传给系统文件管理器或用户保存的程序。应用路径、参数、选中状态和图标存于插件设置。Windows 上检查盘符绝对路径是否存在，并调用系统 PowerShell 提取程序图标。不联网、不读取剪贴板，不主动修改或删除项目文件。外部程序按其自身权限运行。"
     }
   }
 }

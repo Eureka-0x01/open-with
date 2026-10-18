@@ -28,7 +28,8 @@ const MAX_APPS = 32;
 
 /** Windows PowerShell 绝对路径（插件进程拿不到宿主 PATH，绝对路径最稳）。 */
 const POWERSHELL = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
-const ICON_TIMEOUT_MS = 12000;
+// plugin.call 的宿主时限为 2 秒；图标只是可选展示，超时回退默认图标。
+const ICON_TIMEOUT_MS = 1000;
 const ICON_MAX_BASE64 = 200 * 1024;
 
 /** 弹应用内 toast。 */
