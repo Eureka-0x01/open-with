@@ -1,9 +1,9 @@
 /**
- * Open With — 渲染插槽模块（ESM，运行在 PI-Desktop 主窗口）。
+ * OpenWith — 渲染插槽模块（ESM，运行在 PI-Desktop 主窗口）。
  *
  * 结构：
  *   composerControl（输入框底栏左侧）注册一个"分裂按钮"：
- *     [📁 Open With][▾]
+ *     [📁 OpenWith][▾]
  *     —— 主区点击 = 用内置默认（资源管理器）打开当前工作目录；
  *     —— ▾ 点击   = 打开应用管理弹层（pi.ui.openLayer）：
  *                    应用列表（资源管理器置顶、锁定）、添加 / 编辑 / 删除
@@ -520,7 +520,7 @@ function MenuLayer({ anchorRect, close }) {
 
   return h(
     "div",
-    { className: "ow-menu", style, ref: menuRef, role: "menu", "aria-label": "Open With 应用列表" },
+    { className: "ow-menu", style, ref: menuRef, role: "menu", "aria-label": "OpenWith 应用列表" },
     error ? h("p", { className: "ow-form__err" }, error) : null,
     form
       ? h(AppForm, {
@@ -634,7 +634,7 @@ function OpenWithControl() {
     };
   }, []);
 
-  const label = current ? current.label : "Open With";
+  const label = current ? current.label : "OpenWith";
   return h(
     "div",
     { className: "ow-split" },

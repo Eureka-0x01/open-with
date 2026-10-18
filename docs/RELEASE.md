@@ -2,7 +2,7 @@
 
 ## 商店填写信息
 
-- 名称：Open With
+- 名称：OpenWith
 - 插件 ID：`io.github.eureka-0x01.open-with`
 - 版本：`0.1.0`
 - 分类：开发工具、效率工具

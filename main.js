@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Open With — PI-Desktop 插件主进程（CommonJS）。
+ * OpenWith — PI-Desktop 插件主进程（CommonJS）。
  *
  * 应用列表两层结构：
  *   ① 内置默认：系统文件管理器（explorer / open / xdg-open）——硬编码、
