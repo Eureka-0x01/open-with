@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.eureka-0x01.open-with",
   "name": "Open With",
-  "version": "0.7.0",
+  "version": "0.1.0",
   "description": "输入框左侧一颗按钮：主区点击用当前选中的应用打开当前工作目录（在 ▾ 列表里点选即全局切换——点选仅切换不打开，打开只属于主按钮；选中持久保存）；▾ 打开应用管理弹层，可添加、编辑、删除自定义打开方式——粘贴 exe 完整路径（校验 .exe 结尾与文件存在，自动清洗隐形字符），保存时提取该 exe 的图标显示在列表与按钮上。资源管理器为内置默认，任何机器都有且不可编辑、不可删除。",
   "author": "Eureka-0x01",
   "homepage": "https://github.com/Eureka-0x01/open-with",
